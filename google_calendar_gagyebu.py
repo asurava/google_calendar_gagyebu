@@ -134,7 +134,7 @@ def make_ical_file(filename, summary_dict, start_date, end_date):
         f.write("BEGIN:VEVENT\n")
         f.writelines(["DTSTART;VALUE=DATE:", start_date, "\n"])
         f.writelines(["DTEND;VALUE=DATE:", end_date, "\n"])
-        f.writelines(["SUMMARY:", summary, " ", str(format(summary_dict[summary], ",")), "원\n"]) # 숫자 타입 좀 더 예쁘게 다듬고@@@@@
+        f.writelines(["SUMMARY:", summary, " ", str(format(summary_dict[summary], ",")), "원\n"])
         f.write("END:VEVENT\n")
     f.write("END:VCALENDAR")
 
