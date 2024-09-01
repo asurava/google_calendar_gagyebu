@@ -129,12 +129,14 @@ def make_money_summary(calendar_obj_list, start_date, end_date):
 def make_ical_file(filename, summary_dict, start_date, end_date):
     f = open("./" + filename + ".ics", 'w', encoding='UTF-8')
 
+    end_date_day_after = str(datetime.date.fromisoformat(end_date) + datetime.timedelta(days=1)).replace("-","") # 구글 캘린더에 저장할 때 마지막 날짜까지 이벤트가 표시되도록 하기 위함
+
     f.write("BEGIN:VCALENDAR\n")
     for summary in summary_dict:
         f.write("BEGIN:VEVENT\n")
         f.writelines(["DTSTART;VALUE=DATE:", start_date, "\n"])
-        f.writelines(["DTEND;VALUE=DATE:", end_date, "\n"])
-        f.writelines(["SUMMARY:", summary, " ", str(format(summary_dict[summary], ",")), "원\n"])
+        f.writelines(["DTEND;VALUE=DATE:", end_date_day_after, "\n"])
+        f.writelines(["SUMMARY:(금융-가계부-집계) (", start_date, "~", end_date, ") ", summary, " ", str(format(summary_dict[summary], ",")), "원\n"])
         f.write("END:VEVENT\n")
     f.write("END:VCALENDAR")
 
