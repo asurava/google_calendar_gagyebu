@@ -32,15 +32,6 @@
 import datetime
 import re
 
-class calendar_day_obj:
-    def __init__(self, dtstart, dtend, category, money):
-        self.DTSTART = dtstart
-        self.DTEND = dtend
-        self.CATEGORY = category
-        self.MONEY = money
-    def __str__(self):
-        return self.DTSTART + " " + self.DTEND + " " + self.CATEGORY + " " + self.MONEY
-
 def read_ics_file(filename):
 
     f = open("./"+filename+".ics", 'r', encoding='UTF-8')
@@ -50,11 +41,22 @@ def read_ics_file(filename):
 
     return file_content
 
+class calendar_day_obj:
+    def __init__(self, dtstart, dtend, category, money, is_fixed):
+        self.DTSTART = dtstart
+        self.DTEND = dtend
+        self.CATEGORY = category
+        self.MONEY = money
+        self.IS_FIXED = is_fixed
+    def __str__(self):
+        return self.DTSTART + " " + self.DTEND + " " + self.CATEGORY + " " + self.MONEY + " " + self.IS_FIXED
+
 def make_calendar_day_obj(content):
     DTSTART = ""
     DTEND = ""
     CATEGORY = ""
     MONEY = ""
+    IS_FIXED = ""
 
     calendar_list = []
 
@@ -69,8 +71,11 @@ def make_calendar_day_obj(content):
             SUMMARY = SUMMARY.replace("\\","") # calendar에서 메타문자(특수문자) [ , ] 를 일반 문자로 인식하려고 앞에 붙이는 \ 제거
             SUMMARY = SUMMARY.replace(",", "") # 입출금액에 있는 , 제거
 
-            category_pattern = re.compile('\[[^]]+\]')
+            is_fixed_pattern = re.compile('\{[^]]+\}') # 고정입출(fixed), 변동입출(variable)
+
+            category_pattern = re.compile('\[[^]]+\]') # 입출 카테고리
             '''
+            \{ \} 메타문자 중괄호를 일반문자로 인식
             \[ \] 메타문자 대괄호를 일반문자로 인식
             
             대괄호 [] : 대괄호 안에 있는 문자 중에 하나라도 매치되면 추출
@@ -93,11 +98,15 @@ def make_calendar_day_obj(content):
                 예시) ab+c의 패턴인 경우 "abc","abbc", "abbbbbc"...
             '''
 
+            try:
+                IS_FIXED = is_fixed_pattern.findall(SUMMARY)[0]
+            except:
+                IS_FIXED = "{변동}" # 라벨링 안했으면 변동으로 간주
             CATEGORY = category_pattern.findall(SUMMARY)[0]
             MONEY = money_pattern.findall(SUMMARY)[0]
 
         if("END:VEVENT") in line:
-            calendar_list.append(calendar_day_obj(DTSTART, DTEND, CATEGORY, MONEY))
+            calendar_list.append(calendar_day_obj(DTSTART, DTEND, CATEGORY, MONEY, IS_FIXED))
 
     #for obj in calendar_list:
     #    print(obj)
@@ -107,7 +116,9 @@ def make_calendar_day_obj(content):
 def make_money_summary(calendar_obj_list, start_date, end_date):
 
     summary_dict = {}
-    summary_dict['[입출합계]'] = 0
+    summary_dict['[★입출합계]'] = 0
+    summary_dict['[★고정입출계]'] = 0
+    summary_dict['[★변동입출계]'] = 0
 
     for cal_obj in calendar_obj_list:
         obj_day = datetime.date.fromisoformat(cal_obj.DTSTART)
@@ -120,8 +131,18 @@ def make_money_summary(calendar_obj_list, start_date, end_date):
         else:
             summary_dict[cal_obj.CATEGORY] = int(cal_obj.MONEY)
 
+        # 고정입출별, 변동입출별 집계
+        if("변동" in cal_obj.IS_FIXED):
+            summary_dict['[★변동입출계]'] = summary_dict['[★변동입출계]'] + int(cal_obj.MONEY)
+            #print(cal_obj)
+            #print("변동")
+        else:
+            summary_dict['[★고정입출계]'] = summary_dict['[★고정입출계]'] + int(cal_obj.MONEY)
+            #print(cal_obj)
+            #print("고정")
+
         # 총집계
-        summary_dict['[입출합계]'] = summary_dict['[입출합계]'] + int(cal_obj.MONEY)
+        summary_dict['[★입출합계]'] = summary_dict['[★입출합계]'] + int(cal_obj.MONEY)
 
     #print(summary_dict)
     return summary_dict
@@ -136,7 +157,7 @@ def make_ical_file(filename, summary_dict, start_date, end_date):
         f.write("BEGIN:VEVENT\n")
         f.writelines(["DTSTART;VALUE=DATE:", start_date, "\n"])
         f.writelines(["DTEND;VALUE=DATE:", end_date_day_after, "\n"])
-        f.writelines(["SUMMARY:(금융-가계부-집계) (", start_date, "~", end_date, ") ", summary, " ", str(format(summary_dict[summary], ",")), "원\n"])
+        f.writelines(["SUMMARY:(금융-가계부-집계) (", start_date[-6:], "~", end_date[-6:], ") ", summary, " ", str(format(summary_dict[summary], ",")), "원\n"])
         f.write("END:VEVENT\n")
     f.write("END:VCALENDAR")
 
