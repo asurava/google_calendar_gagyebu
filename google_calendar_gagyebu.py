@@ -159,10 +159,11 @@ def make_calendar_day_obj(content, start_date, end_date):
 def make_money_summary(calendar_obj_list, start_date, end_date):
 
     calendar_obj_summary_dict = {}
-    key1, key2, key3 = '[★입출계]'+str(False), '[★고정입출계]'+str(True), '[★변동입출계]'+str(False)
-    calendar_obj_summary_dict[key1] = calendar_day_obj(start_date, end_date, '[★입출계]', 0, False)
+    key1, key2, key3, key4 = '[★총입출계]'+str(False), '[★고정입출계]'+str(True), '[★변동입출계]'+str(False), '[★저축입출계]'+str(True)
+    calendar_obj_summary_dict[key1] = calendar_day_obj(start_date, end_date, '[★총입출계]', 0, False)
     calendar_obj_summary_dict[key2] = calendar_day_obj(start_date, end_date, '[★고정입출계]', 0, True)
     calendar_obj_summary_dict[key3] = calendar_day_obj(start_date, end_date, '[★변동입출계]', 0, False)
+    calendar_obj_summary_dict[key4] = calendar_day_obj(start_date, end_date, '[★저축입출계]', 0, True)
 
     for cal_obj in calendar_obj_list:
         # 카테고리별 집계
@@ -174,15 +175,19 @@ def make_money_summary(calendar_obj_list, start_date, end_date):
             calendar_obj_summary_dict[cal_obj_key].DTSTART = start_date # 집계할거니까 집계기간으로 속성값 조정
             calendar_obj_summary_dict[cal_obj_key].DTEND = end_date # 집계할거니까 집계기간으로 속성값 조정
 
-        # 고정입출별, 변동입출별 집계
-        if(cal_obj.IS_FIXED):
-            calendar_obj_summary_dict[key2] = calendar_obj_summary_dict[key2] + cal_obj
-            #print(cal_obj)
-            #print("고정")
+        # 고정입출별, 변동입출별 집계 → 순수 소비
+        # 저축입출별 집계 → 저축성 소비 (저축입금은 -로 표기 / 저축출금은 +로 표기)
+        if ("저축" in cal_obj.CATEGORY): # 저축입출
+            calendar_obj_summary_dict[key4] = calendar_obj_summary_dict[key4] + cal_obj
         else:
-            calendar_obj_summary_dict[key3] = calendar_obj_summary_dict[key3] + cal_obj
-            #print(cal_obj)
-            #print("변동")
+            if(cal_obj.IS_FIXED): # 고정입출
+                calendar_obj_summary_dict[key2] = calendar_obj_summary_dict[key2] + cal_obj
+                #print(cal_obj)
+                #print("고정")
+            else: # 변동입출
+                calendar_obj_summary_dict[key3] = calendar_obj_summary_dict[key3] + cal_obj
+                #print(cal_obj)
+                #print("변동")
 
         # 총집계
         calendar_obj_summary_dict[key1] = calendar_obj_summary_dict[key1] + cal_obj
