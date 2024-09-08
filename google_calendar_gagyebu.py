@@ -131,7 +131,7 @@ def make_calendar_day_obj(content, start_date, end_date):
 
             try:
                 IS_FIXED = is_fixed_pattern.findall(SUMMARY)[0]
-                if IS_FIXED == "{고정}":
+                if "고정" in IS_FIXED:
                     IS_FIXED = True
                 else:
                     IS_FIXED = False
