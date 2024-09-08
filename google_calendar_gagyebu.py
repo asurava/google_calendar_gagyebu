@@ -32,7 +32,7 @@
 import datetime
 import re
 
-def day_Validation_check(day, start_date, end_date):
+def day_validation_check(day, start_date, end_date):
     datetime_format = datetime.date.fromisoformat(day)
     if (datetime_format < start_date or datetime_format > end_date):
         return False # 기간 내에 들어오지 않으면 False 반환
@@ -137,11 +137,18 @@ def make_calendar_day_obj(content, start_date, end_date):
                     IS_FIXED = False
             except:
                 IS_FIXED = False # 라벨링 안했으면 변동으로 간주
+
+            try:
+                MONEY = money_pattern.findall(SUMMARY)[0]
+            except:
+                MONEY = 0 # money 값이 없는 경우 0원으로 간주
+
             CATEGORY = category_pattern.findall(SUMMARY)[0]
-            MONEY = money_pattern.findall(SUMMARY)[0]
 
         if("END:VEVENT") in line:
-            if(day_Validation_check(DTSTART, start_date, end_date)): # 집계기간에 들어오는 것만 객체 생성
+            if(day_validation_check(DTSTART, start_date, end_date) and # 집계기간에 들어오는 것만 객체 생성
+            "입출계" not in CATEGORY and # 주간/월간 등 한 번 집계한 캘린더를 활용해서 다시 집계하는 경우 중복을 방지하기 위함 (입출계 제거)
+            "☆-" not in CATEGORY): # 주간/월간 등 한 번 집계한 캘린더를 활용해서 다시 집계하는 경우 중복을 방지하기 위함 (입출계 구분 라인 ☆----- 제거)
                 calendar_list.append(calendar_day_obj(DTSTART, DTEND, CATEGORY, MONEY, IS_FIXED))
 
     #for obj in calendar_list:
