@@ -194,7 +194,7 @@ def make_ical_file(filename, calendar_obj_summary_dict, start_date, end_date):
         f.write("BEGIN:VEVENT\n")
 
         write_ics_line(f, start_date, end_date_day_after
-                       , "(금융-가계부-집계) (" + start_date[-6:] + "~" + end_date[-6:] + ") " + calendar_obj.CATEGORY + " " + str(format(calendar_obj.MONEY, ",")) + "원")
+                       , "(금융-가계부-집계) (" + start_date[-6:] + "~" + end_date[-6:] + ") " + calendar_obj.CATEGORY + " " + ("+" if calendar_obj.MONEY >= 0 else "") + str(format(calendar_obj.MONEY, ",")) + "원")
 
         if "입출계" not in calendar_obj.CATEGORY:
             f.write(" {▶고정}\n" if calendar_obj.IS_FIXED else " {▷변동}\n")
