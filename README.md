@@ -21,3 +21,13 @@
 이걸 구글 캘린더 내보내기 기능으로 ics파일로 만든 이후
 
 본 파이썬 파일을 실행해서 나오는 result.ics 파일을 2번 캘린더에 구글 캘린더 가져오기 기능으로 저장하시면 됩니다.
+
+
+
+
+240909
+
+![image](https://github.com/user-attachments/assets/9034646a-a6bf-44de-855c-eadce87dadff)
+
+사용하기 쉽게 GUI로 exe파일 만들었습니다.
+dist 폴더에서 사용하시면 됩니다.
