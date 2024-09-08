@@ -59,7 +59,7 @@ lab21.grid(row=1,column=0,padx=5,pady=10)
 
 start_date_space = DateEntry(app,selectmode="day",date_pattern="yyyy-mm-dd")
 start_date_space.grid(row=1,column=1,padx=5,pady=10)
-# 달력이 뜨게 만들어주세용@@@@@@
+
 #------------------------------------------------------------------------------
 
 lab31=Label(app,
@@ -73,7 +73,7 @@ lab31.grid(row=2,column=0,padx=5,pady=10)
 
 end_date_space = DateEntry(app,selectmode="day",date_pattern="yyyy-mm-dd")
 end_date_space.grid(row=2,column=1,padx=5,pady=10)
-# 달력이 뜨게 만들어주세용@@@@@@
+
 #------------------------------------------------------------------------------
 
 bt_find = Button(app, text="Find", width=10, command=file_find)
