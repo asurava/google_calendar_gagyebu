@@ -40,7 +40,7 @@ def day_validation_check(day, start_date, end_date):
 
 def read_ics_file(filename):
 
-    f = open("./"+filename+".ics", 'r', encoding='UTF-8')
+    f = open(filename, 'r', encoding='UTF-8')
     #print(line)
     file_content = f.readlines()
     f.close()
@@ -224,17 +224,18 @@ def make_ical_file(filename, calendar_obj_summary_dict, start_date, end_date):
 
     f.close()
 
+def main(file_name = "", start_date = "", end_date = ""):
+    if file_name == "" and start_date == "" and end_date == "":
+        file_name = input("집계대상 ical 파일명 (절대 경로 + 확장자까지 입력해주세요) : ")
+        start_date = input("집계 시작일 (YYYYMMDD) : ")
+        end_date = input("집계 종료일 (YYYYMMDD) : ")
 
-file_name = input("집계대상 ical 파일명 (확장자 제외하고 입력해주세요) : ")
-start_date = input("집계 시작일 (YYYYMMDD) : ")
-end_date = input("집계 종료일 (YYYYMMDD) : ")
+    calendar_obj_list = sorted(make_calendar_day_obj(read_ics_file(file_name),
+                                                     datetime.date.fromisoformat(start_date),
+                                                     datetime.date.fromisoformat(end_date)),
+                                   key=lambda calendar_obj: calendar_obj.DTSTART) # 시작일 순으로 정렬, 지금 시점에서는 불필요하긴 함
 
-calendar_obj_list = sorted(make_calendar_day_obj(read_ics_file(file_name),
-                                                 datetime.date.fromisoformat(start_date),
-                                                 datetime.date.fromisoformat(end_date)),
-                               key=lambda calendar_obj: calendar_obj.DTSTART) # 시작일 순으로 정렬, 지금 시점에서는 불필요하긴 함
+    calendar_obj_summary_dict = make_money_summary(calendar_obj_list, start_date, end_date)
 
-calendar_obj_summary_dict = make_money_summary(calendar_obj_list, start_date, end_date)
-
-make_ical_file("result", calendar_obj_summary_dict, start_date, end_date)
-print("수행되었습니다.")
+    make_ical_file("result", calendar_obj_summary_dict, start_date, end_date)
+    print("수행되었습니다.")
