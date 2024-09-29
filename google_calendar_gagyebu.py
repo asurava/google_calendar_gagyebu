@@ -140,6 +140,8 @@ def make_calendar_day_obj(content, start_date, end_date):
 
             try:
                 MONEY = money_pattern.findall(SUMMARY)[0]
+                if("원" in MONEY):
+                    MONEY = MONEY[:MONEY.find("원")]
             except:
                 MONEY = 0 # money 값이 없는 경우 0원으로 간주
 
