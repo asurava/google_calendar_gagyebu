@@ -117,7 +117,7 @@ def make_calendar_day_obj(content, start_date, end_date):
                 예시) ab+c의 패턴인 경우 "abc","abbc", "abbbbbc"...
             '''
 
-            money_pattern = re.compile('([+-][^]]+)원') # 금액 pattern +-N원
+            money_pattern = re.compile('([+-][0-9]+)원') # 금액 pattern +-N원
             '''
             소괄호 () : 그룹화라고 읽음 괄호 안의 패턴을 하나의 그룹으로 묶어서 처리가능
                 → 매치되는 패턴에서 소괄호 안에 있는 내용만 추출하는 역할 수행
@@ -140,8 +140,6 @@ def make_calendar_day_obj(content, start_date, end_date):
 
             try:
                 MONEY = money_pattern.findall(SUMMARY)[0]
-                if("원" in MONEY):
-                    MONEY = MONEY[:MONEY.find("원")]
             except:
                 MONEY = 0 # money 값이 없는 경우 0원으로 간주
 
