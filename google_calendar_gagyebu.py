@@ -57,7 +57,12 @@ class calendar_day_obj:
         self.DTSTART = dtstart
         self.DTEND = dtend
         self.CATEGORY = category
-        self.MONEY = int(money)
+        try:
+            self.MONEY = int(money)
+            self.CURRENCY = "원"
+        except:
+            self.MONEY = float(money)
+            self.CURRENCY = "달러"
         self.IS_FIXED = bool(is_fixed)
 
     def __str__(self):
@@ -117,14 +122,15 @@ def make_calendar_day_obj(content, start_date, end_date):
                 예시) ab+c의 패턴인 경우 "abc","abbc", "abbbbbc"...
             '''
 
-            money_pattern = re.compile('([+-][0-9]+)원') # 금액 pattern +-N원
+            money_pattern = re.compile('([+,-]?\d*\.?\d+)[원,달러]') # 금액 pattern +-N원
             '''
             소괄호 () : 그룹화라고 읽음 괄호 안의 패턴을 하나의 그룹으로 묶어서 처리가능
                 → 매치되는 패턴에서 소괄호 안에 있는 내용만 추출하는 역할 수행
             대괄호 [] : 대괄호 안에 있는 문자 중에 하나라도 매치되면 추출
-            시작(^) 끝($) : 각 문자열의 시작과 끝을 나타냄
-                예시) ^abc의 패턴인 경우 "abc"로 시작하는 문자열 추출
-                예시) abc$의 패턴인 경우 "abc"로 끝나는 문자열 추출
+            ? 앞에 문자가 존재하거나, 존재하지 않거나
+            \d decimal
+            \. dot
+            반복(*) : 앞의 문자가 0번 이상 반복될 때 추출
             반복(+) : 앞의 문자가 1번 이상 반복될 때 추출
                 예시) ab+c의 패턴인 경우 "abc","abbc", "abbbbbc"...
             '''
@@ -217,7 +223,7 @@ def make_ical_file(filename, calendar_obj_summary_dict, start_date, end_date):
         f.write("BEGIN:VEVENT\n")
 
         write_ics_line(f, start_date, end_date_day_after
-                       , "(금융-가계부-집계) (" + start_date[-6:] + "~" + end_date[-6:] + ") " + calendar_obj.CATEGORY + " " + ("+" if calendar_obj.MONEY >= 0 else "") + str(format(calendar_obj.MONEY, ",")) + "원")
+                       , "(금융-가계부-집계) (" + start_date[-6:] + "~" + end_date[-6:] + ") " + calendar_obj.CATEGORY + " " + ("+" if calendar_obj.MONEY >= 0 else "") + str(format(calendar_obj.MONEY, ",")) + calendar_obj.CURRENCY)
 
         if "입출계" not in calendar_obj.CATEGORY:
             f.write(" {▶고정}\n" if calendar_obj.IS_FIXED else " {▷변동}\n")
