@@ -103,6 +103,7 @@ def make_calendar_day_obj(content, start_date, end_date):
         elif("SUMMARY:") in content[i]:
             SUMMARY = content[i]
 
+            #summary가 길어지면 줄이 넘어가는 경우가 생겨서 수정함
             while (("TRANSP:" not in content[i+1])
                    and ("END:VEVENT" not in content[i+1])
                    and ("END:VCALENDAR" not in content[i+1])):
