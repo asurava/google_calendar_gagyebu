@@ -95,17 +95,27 @@ def make_calendar_day_obj(content, start_date, end_date):
 
     calendar_list = []
 
-    for line in content:
-        if("DTSTART;") in line:
-            DTSTART = line[-9:].replace("\n","") # 줄바꿈 문자 제거
-        elif("DTEND;") in line:
-            DTEND = line[-9:].replace("\n","") # 줄바꿈 문자 제거
-        elif("SUMMARY:") in line:
+    for i in range(len(content)):
+        if("DTSTART;") in content[i]:
+            DTSTART = content[i][-9:].replace("\n","") # 줄바꿈 문자 제거
+        elif("DTEND;") in content[i]:
+            DTEND = content[i][-9:].replace("\n","") # 줄바꿈 문자 제거
+        elif("SUMMARY:") in content[i]:
+            SUMMARY = content[i]
+
+            while (("TRANSP:" not in content[i+1])
+                   and ("END:VEVENT" not in content[i+1])
+                   and ("END:VCALENDAR" not in content[i+1])):
+                SUMMARY = SUMMARY + content[i+1]
+                i = i+1
+
             # summary 전처리 start
-            SUMMARY = line.replace("\n","") # 줄바꿈 문자 제거
+            SUMMARY = SUMMARY.replace("\n","") # 줄바꿈 문자 제거
             SUMMARY = SUMMARY.replace("\\","") # calendar에서 메타문자(특수문자) [ , ] 를 일반 문자로 인식하려고 앞에 붙이는 \ 제거
             SUMMARY = SUMMARY.replace(",", "") # 입출금액에 있는 , 제거
             # summary 전처리 end
+
+            #print(SUMMARY)
 
             is_fixed_pattern = re.compile('\{[^]]+\}') # 고정입출(fixed), 변동입출(variable) pattern { }
 
@@ -153,8 +163,7 @@ def make_calendar_day_obj(content, start_date, end_date):
                 CATEGORY = category_pattern.findall(SUMMARY)[0]
             except:
                 CATEGORY = "[카테고리 없음]" # category 라벨링 안했으면 기본으로 달아줌
-
-        if("END:VEVENT") in line:
+        elif("END:VEVENT") in content[i]:
             if(day_validation_check(DTSTART, start_date, end_date) and # 집계기간에 들어오는 것만 객체 생성
             "입출계" not in CATEGORY and # 주간/월간 등 한 번 집계한 캘린더를 활용해서 다시 집계하는 경우 중복을 방지하기 위함 (입출계 제거)
             "☆-" not in CATEGORY): # 주간/월간 등 한 번 집계한 캘린더를 활용해서 다시 집계하는 경우 중복을 방지하기 위함 (입출계 구분 라인 ☆----- 제거)
@@ -191,7 +200,7 @@ def make_money_summary(calendar_obj_list, start_date, end_date):
         # 투자입출별 집계 → 투자성 소비 (투자입금은 -로 표기 / 투자출금은 +로 표기)
         if ("저축" in cal_obj.CATEGORY): # 저축입출
             calendar_obj_summary_dict[key5] = calendar_obj_summary_dict[key5] + cal_obj
-        elif ("투자" in cal_obj.CATEGORY):  # 저축입출
+        elif ("투자" in cal_obj.CATEGORY):  # 투자입출
             calendar_obj_summary_dict[key6] = calendar_obj_summary_dict[key6] + cal_obj
         else:
             if(cal_obj.IS_FIXED): # 고정입출
@@ -199,15 +208,16 @@ def make_money_summary(calendar_obj_list, start_date, end_date):
                     calendar_obj_summary_dict[key2] = calendar_obj_summary_dict[key2] + cal_obj
                 else:
                     calendar_obj_summary_dict[key3] = calendar_obj_summary_dict[key3] + cal_obj
-                #print(cal_obj)
-                #print("고정")
+                print(cal_obj)
+                print("고정")
             else: # 변동입출
                 calendar_obj_summary_dict[key4] = calendar_obj_summary_dict[key4] + cal_obj
-                #print(cal_obj)
-                #print("변동")
+                print(cal_obj)
+                print("변동")
 
         # 총집계
         calendar_obj_summary_dict[key1] = calendar_obj_summary_dict[key1] + cal_obj
+        print(calendar_obj_summary_dict[key1])
 
     #print(calendar_obj_summary_dict)
     return calendar_obj_summary_dict
@@ -223,7 +233,11 @@ def make_ical_file(filename, calendar_obj_summary_dict, start_date, end_date):
         f.write("BEGIN:VEVENT\n")
 
         write_ics_line(f, start_date, end_date_day_after
-                       , "(금융-가계부-집계) (" + start_date[-6:] + "~" + end_date[-6:] + ") " + calendar_obj.CATEGORY + " " + ("+" if calendar_obj.MONEY >= 0 else "") + str(format(calendar_obj.MONEY, ",")) + calendar_obj.CURRENCY)
+                       , "(금융-가계부-집계) (" + start_date[-6:] + "~" + end_date[-6:] + ") "
+                       + calendar_obj.CATEGORY + " " #카테고리
+                       + ("+" if calendar_obj.MONEY >= 0 else "") #부호
+                       + str(format( (round(calendar_obj.MONEY,2) if type(calendar_obj.MONEY) is float else calendar_obj.MONEY), ",")) #소수점 여부에 따라 round 처리
+                       + calendar_obj.CURRENCY) #단위
 
         if "입출계" not in calendar_obj.CATEGORY:
             f.write(" {▶고정}\n" if calendar_obj.IS_FIXED else " {▷변동}\n")
