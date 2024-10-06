@@ -83,7 +83,7 @@ class calendar_day_obj:
                 and self.DTEND == other.DTEND)
 
     def __add__(self, other):
-        self.MONEY = self.MONEY + other.MONEY
+        self.MONEY = round(self.MONEY + other.MONEY, 2)
         return self
 
 def make_calendar_day_obj(content, start_date, end_date):
@@ -237,7 +237,7 @@ def make_ical_file(filename, calendar_obj_summary_dict, start_date, end_date):
                        , "(금융-가계부-집계) (" + start_date[-6:] + "~" + end_date[-6:] + ") "
                        + calendar_obj.CATEGORY + " " #카테고리
                        + ("+" if calendar_obj.MONEY >= 0 else "") #부호
-                       + str(format( (round(calendar_obj.MONEY,2) if type(calendar_obj.MONEY) is float else calendar_obj.MONEY), ",")) #소수점 여부에 따라 round 처리
+                       + str(format( calendar_obj.MONEY, ",")) #금액
                        + calendar_obj.CURRENCY) #단위
 
         if "입출계" not in calendar_obj.CATEGORY:
